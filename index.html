@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Perfect Cafe v10 (Auto Themes)</title>
+  <style>
+    :root {
+      --bg: #106c2f;
+      --bg-dark: #0a4d22;
+      --red: #c62828;
+      --amber: #f9a825;
+      --green: #2e7d32;
+      --panel: #231f26;
+      --panel-2: #1f2c35;
+      --ink: #0a0a0a;
+      --ink-2: #1b1b1b;
+      --card: #3a2a2a;
+      --accent: #00bcd4;
+      --accent-2: #1de9b6;
+      --round: 18px;
+      --shadow: 0 8px 24px rgba(0,0,0,.35), inset 0 2px 0 rgba(255,255,255,.07);
+      --ui: #eafcff;
+      /* Upgrade shop theming (updated automatically every 5 levels) */
+      --shop-hue: 180;                 /* 0–360 */
+      --shop-bg: hsl(var(--shop-hue), 50%, 14%);
+      --shop-panel: hsl(var(--shop-hue), 45%, 22%);
+      --shop-accent1: hsl(var(--shop-hue), 85%, 58%);
+      --shop-accent2: hsl(calc(var(--shop-hue) + 20), 85%, 48%);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+      background: repeating-linear-gradient(90deg, #0e892f 0 80px, #0a7a2a 80px 160px);
+      color: #fff;
+      user-select: none;
+      overflow: hidden;
+      transition: background 500ms ease;
+    }
+
+    /* Top HUD */
+    .hud { position: absolute; inset: 12px 12px auto 12px; display: flex; align-items: center; gap: 14px; }
+    .pill { background: #213c29; border: 6px solid #091a21; color: #a8d1ff; border-radius: 50px; padding: 10px 16px; font-weight: 900; font-size: 24px; letter-spacing: 1px; box-shadow: var(--shadow); }
+    .stars { display: inline-flex; gap: 4px; font-size: 22px; align-items: center; }
+    .star { filter: drop-shadow(0 2px 0 #062); }
+    .cash { margin-left: auto; background: #c9f6ff; color: #03233a; border: 10px solid #03173b; padding: 10px 22px; border-radius: 24px; font-weight: 900; font-size: 28px; box-shadow: var(--shadow); }
+
+    /* Left buttons */
+    .left-col { position: absolute; left: 12px; top: 120px; display: grid; gap: 12px; }
+    .btn-circle { width: 94px; height: 94px; border-radius: 20px; background: #213c29; border: 8px solid #0e1b28; display: grid; place-items: center; box-shadow: var(--shadow); cursor: pointer; transition: transform .08s ease; }
+    .btn-circle span { font-size: 42px; }
+    .btn-circle:active { transform: translateY(2px) scale(.98); }
+
+    
+    .btn-circle img { 
+      width: 68px; 
+      height: 68px; 
+      object-fit: contain; 
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+      pointer-events: none;
+      user-select: none;
+      filter: drop-shadow(0 2px 0 rgba(0,0,0,.25));
+    }
+
+/* Tray bar */
+    .traybar {
+      position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 22px 26px;
+      background: linear-gradient(#b11d1d, #6f1111 55%);
+      display: grid; grid-template-columns: repeat(6, 1fr); gap: 18px; border-top: 6px solid #360808;
+      transition: background 400ms ease, border-color 400ms ease;
+    }
+    .slot { aspect-ratio: 3/4; background: #3a2222; border: 6px solid #120707; border-radius: 26px; position: relative; display: grid; place-items: center; padding: 8px; transition: transform .06s ease, background 400ms ease, border-color 400ms ease, box-shadow 400ms ease; }
+    .slot.empty { opacity: .75; }
+    .slot:active { transform: translateY(3px); }
+    .qty { position: absolute; right: 8px; bottom: 8px; background: #101010; color: #fff; border: 4px solid #fff; font-weight: 900; border-radius: 10px; padding: 2px 6px; font-size: 18px; }
+    .slot .img { width: 80%; height: 70%; background: #1b1b1b; border-radius: 16px; display: grid; place-items: center; box-shadow: inset 0 0 0 6px rgba(0,0,0,.2); font-size: 64px; transition: background 400ms ease; }
+    .slot.selected { outline: 5px solid #00e1ff; box-shadow: 0 0 0 6px rgba(0,225,255,.25) inset; }
+
+    /* Orders row */
+    .orders { position: absolute; left: 140px; right: 140px; top: 42%; transform: translateY(-50%); display: flex; gap: 26px; align-items: flex-end; justify-content: center; z-index: 2; }
+    .order { position: relative; min-width: 330px; max-width: 380px; background: #49cfe3; color: #082834; border-radius: 26px 26px 50px 26px; padding: 18px 22px 22px; border: 8px solid #083a54; box-shadow: var(--shadow); }
+    .order::after { content: ""; position: absolute; bottom: -18px; left: 36px; width: 0; height: 0; border-left: 18px solid transparent; border-right: 18px solid transparent; border-top: 18px solid #083a54; filter: drop-shadow(0 4px 0 rgba(0,0,0,.25)); }
+    .order h3 { margin: 0 0 10px; font-size: 30px; letter-spacing: .5px; }
+    
+    .need { display: flex; flex-wrap: wrap; gap: 16px; margin: 12px 0 12px; }
+    .need .item {
+      position: relative;
+      display: grid;
+      grid-template-columns: 56px auto;
+      align-items: center;
+      gap: 14px;
+      background: rgba(255,255,255,.82);
+      padding: 14px 16px;
+      border-radius: 16px;
+      min-width: 176px;
+      min-height: 64px;
+      box-shadow: 0 4px 0 rgba(0,0,0,.18);
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .need .item:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,.18); }
+    .need .item .em { width: 56px; height: 56px; display: grid; place-items: center; font-size: 34px; }
+    .need .item .em img { width: 100%; height: 100%; object-fit: contain; }
+    .need .item div { font-size: 20px; line-height: 1; }
+
+    .price { font-weight: 900; font-size: 26px; }
+
+    .bar { height: 14px; border-radius: 8px; background: #0a2b33; overflow: hidden; border: 3px solid #082834; }
+    .bar > span { display: block; height: 100%; width: 100%; background: var(--green); transition: width .2s linear, background .2s linear; }
+
+    /* Pantry */
+    .modal { position: absolute; inset: 0; display: none; place-items: center; background: rgba(0,0,0,.45); padding: 20px; }
+    .modal.open { display: grid; }
+    .pantry { width: min(1100px, 96vw); background: #16212a; border: 10px solid #0a1218; border-radius: 30px; padding: 18px; box-shadow: var(--shadow); }
+    .pantry h2 { margin: 6px 0 10px; font-size: 26px; color: #b6eaff; }
+    .pantry-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .p-card { background: #254252; border-radius: 22px; border: 6px solid #0d1c24; padding: 12px; display: grid; grid-template-columns: 100px 1fr auto; align-items: center; gap: 10px; }
+    .p-img { width: 100px; height: 84px; display: grid; place-items: center; font-size: 48px; background: #173341; border-radius: 16px; }
+    .p-info { line-height: 1.1; }
+    .p-title { font-weight: 900; font-size: 22px; }
+    .p-qty { opacity: .9; font-size: 18px; }
+    .p-buy { display: grid; gap: 8px; }
+    .btn { background: linear-gradient(#39d1ff, #19a1c1); border: none; color: #00222e; font-weight: 900; padding: 10px 14px; border-radius: 100px; cursor: pointer; border: 4px solid #082735; box-shadow: var(--shadow); }
+    .btn:disabled { filter: grayscale(100%); opacity: .5; cursor: not-allowed; }
+    .pantry-footer { display: flex; justify-content: space-between; align-items: center; padding: 10px 8px 0; color: #bfefff; }
+
+    /* Upgrade Shop */
+    .shop { width: min(980px, 94vw); background: var(--shop-bg); border: 10px solid var(--shop-panel); border-radius: 28px; padding: 18px; box-shadow: var(--shadow); }
+    .shop h2 { margin: 6px 0 10px; font-size: 26px; color: #fff; display:flex; align-items:center; gap:10px; }
+    .theme-badge { display:inline-grid; place-items:center; gap:2px; padding:6px 10px; border-radius:14px; font-weight:900; background: var(--shop-accent1); color:#001f22; border:3px solid #012228; }
+    .shop-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .u-card { background: linear-gradient(135deg, var(--shop-panel), #101417); border-radius: 20px; border: 6px solid rgba(255,255,255,.08); padding: 14px; display: grid; grid-template-rows: auto auto 1fr auto; gap: 8px; }
+    .u-title { font-weight: 900; font-size: 20px; letter-spacing: .3px; }
+    .u-badge { display:inline-block; background: var(--shop-accent1); color: #001f22; border: 3px solid #012228; border-radius: 999px; padding: 4px 8px; font-weight: 900; }
+    .u-body { opacity: .9; }
+    .u-buy { display: grid; grid-auto-flow: row; gap: 8px; }
+    .price-pill { background: var(--shop-accent2); color: #001a1d; border: 4px solid #001015; font-weight: 900; border-radius: 12px; padding: 6px 10px; display: inline-block; }
+    .shop-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 8px; opacity: .9; }
+
+    .toast { position: absolute; left: 50%; transform: translateX(-50%); bottom: 220px; background: #000; color: #fff; padding: 10px 16px; border-radius: 999px; opacity: 0; transition: opacity .25s ease, transform .25s ease; pointer-events: none; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
+
+    .winlose { position: absolute; inset: 0; display: none; place-items: center; background: rgba(0,0,0,.65); }
+    .winlose .card { background: #14222a; border: 8px solid #071218; padding: 28px; border-radius: 22px; width: 520px; text-align: center; box-shadow: var(--shadow); }
+    .winlose h1 { margin: 0 0 10px; }
+    .winlose p { opacity: .9; }
+
+    .legend { position: absolute; left: 12px; top: 72px; font-size: 12px; opacity: .7; }
+  
+    /* Display font for orders & money */
+    @font-face { font-family: 'Poster Gothic ATF'; src: local('Poster Gothic ATF'); font-style: normal; font-weight: 400 900; }
+    .order h3, .order .price, .cash { font-family: 'Poster Gothic ATF', Impact, 'Arial Black', system-ui, sans-serif; letter-spacing: 1px; }
+
+    /* Hide orders when pantry or shop is open */
+    body.pantry-open #orders, body.shop-open #orders { display: none; }
+
+    @media (max-height: 700px) { .orders { top: 38%; } }
+  
+    /* === PNG support image sizing === */
+    .slot .img img,
+    .p-img img,
+    .need .item .em img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    /* === end PNG support === */
+  </style>
+</head>
+<body>
+  <div class="hud">
+    <div class="pill" id="levelPill">LEVEL <span id="levelNum">1</span></div>
+    <div class="stars" id="stars"></div>
+    <div class="cash" id="cash">$100</div>
+  </div>
+
+  <div class="legend">(Click the fork/knife to open pantry; $ sign opens upgrades • Shop look changes every 5 levels)</div>
+
+  <div class="left-col">
+    <button class="btn-circle" id="btnPantry" title="Pantry"><img src="./img/pantry.png" alt="Pantry"></button>
+    <button class="btn-circle" id="btnShop" title="Upgrade Shop"><img src="./img/upgrade.png" alt="Upgrades"></button>
+  </div>
+
+  <div class="orders" id="orders"></div>
+
+  <div class="traybar" id="traybar"></div>
+
+  <!-- Pantry Modal -->
+  <div class="modal" id="pantryModal">
+    <div class="pantry">
+      <h2>Pantry <small id="refreshTxt" style="opacity:.8">(refreshes in <span id="refreshTimer">0:15</span>)</small></h2>
+      <div class="pantry-grid" id="pantryGrid"></div>
+      <div class="pantry-footer">
+        <button class="btn" id="closePantry">Close</button>
+        <div>Tip: You can hold multiple of the same item, but only six different items at once.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upgrade Shop Modal -->
+  <div class="modal" id="shopModal">
+    <div class="shop" id="shopRoot">
+      <h2>Upgrade Shop <span class="theme-badge" id="shopThemeBadge">Theme Lv. 0<br><small>changes every 5 levels</small></span></h2>
+      <div class="shop-grid">
+        <!-- Customer Patience -->
+        <div class="u-card">
+          <div class="u-title">Customer Patience</div>
+          <div class="u-body">Make timers last longer. 10 levels total. Each level adds +5% time.</div>
+          <div><span class="price-pill" id="patiencePrice">$150</span> &nbsp; <span id="patienceLvl">Lv. 0/10</span></div>
+          <div class="u-buy"><button class="btn" id="buyPatience">Buy</button></div>
+        </div>
+        <!-- +1 Tray -->
+        <div class="u-card">
+          <div class="u-title">+1 Tray Slot</div>
+          <div class="u-body">Carry another item type at the same time. Each purchase adds one slot.</div>
+          <div><span class="price-pill" id="trayPrice">$300</span> &nbsp; <span id="trayInfo">6 slots</span></div>
+          <div class="u-buy"><button class="btn" id="buyTray">Buy</button></div>
+        </div>
+        <!-- Auto Theme Info -->
+        <div class="u-card">
+          <div class="u-title">Auto Theme</div>
+          <div class="u-body">The cafe's look upgrades for free at levels 5, 10, 15, 20, and 25. Background & trays get a glow-up too.</div>
+          <div><span class="u-badge" id="curThemeName">Forest Café</span> &nbsp; <span id="themeInfo">Lv. 0</span></div>
+          <div class="u-buy"><button class="btn" id="previewTheme">Preview Next</button></div>
+        </div>
+      </div>
+      <div class="shop-footer">
+        <button class="btn" id="closeShop">Close</button>
+        <div>Pro tip: Patience stacks multiplicatively with level timers.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="winlose" id="winlose">
+    <div class="card">
+      <h1 id="wlTitle">You Win!</h1>
+      <p id="wlText"></p>
+      <button class="btn" id="restartBtn">Play Again</button>
+    </div>
+  </div>
+
+  <script>
+  // --- Data --------------------------------------------------------------
+  const FOODS = [
+    { id:'cake',     name:'Cake',      emoji:'🎂', sell:50, buy:35 },
+    { id:'bread',    name:'bread',     emoji:'🥐', sell:18, buy:12 },
+    { id:'sandwich', name:'Sandwich',  emoji:'🥪', sell:22, buy:14 },
+    { id:'sushi',    name:'Sushi',     emoji:'🍣', sell:28, buy:18 },
+    { id:'steak',    name:'Steak',     emoji:'🥩', sell:40, buy:26 },
+    { id:'fries',    name:'Fries',     emoji:'🍟', sell:14, buy:9  },
+    { id:'taco',     name:'Taco',      emoji:'🌮', sell:20, buy:13 },
+    { id:'burger',   name:'Burger',    emoji:'🍔', sell:24, buy:15 },
+    { id:'pasta',    name:'Pasta',     emoji:'🍝', sell:26, buy:17 },
+    { id:'pizza',    name:'Pizza',     emoji:'🍕', sell:30, buy:20 },
+  ];
+
+  // === PNG support additions ===
+  const ASSET_DIR = './img/'; // place your PNGs in this folder next to the HTML
+  function foodSrc(id){ return `${ASSET_DIR}${id}.png`; }
+  // === end PNG support additions ===
+
+
+  // --- State ------------------------------------------------------------
+  const state = {
+    level: 1,
+    stars: 5,
+    cash: 100,
+    trays: {}, // id -> qty
+    selectedTray: null,
+    pantry: [], // {id, qty}
+    pantryRefreshAt: Date.now() + 15_000,
+    customers: [],
+    maxVisibleOrders: 3,
+    totalLevels: 25,
+    // Upgrades
+    maxTrayTypes: 6,              // starts at 6; +1 per tray upgrade
+    patienceLevel: 0,             // 0..10; +5% timer each level
+  };
+
+  // Prices / caps
+  const PRICES = {
+    patience: 150,        // flat per level
+    tray: 300,            // per purchase
+  };
+  const CAPS = { patience: 10, maxTrayTypes: 14 };
+
+  // THEME PRESETS (auto-applied every 5 levels)
+  const THEMES = [
+    {
+      name: 'Forest Café',
+      shopHue: 180,
+      bodyBg: 'repeating-linear-gradient(90deg, #0e892f 0 80px, #0a7a2a 80px 160px)',
+      traybarBg: 'linear-gradient(#b11d1d, #6f1111 55%)',
+      traybarBorder: '#360808',
+      slotBg: '#3a2222',
+      slotBorder: '#120707',
+      slotImgBg: '#1b1b1b',
+    },
+    {
+      name: 'Neon Night',
+      shopHue: 300,
+      bodyBg: 'radial-gradient(1200px 600px at 20% 10%, #2b003d, #00112a 60%)',
+      traybarBg: 'linear-gradient(#2b0046, #120028 55%)',
+      traybarBorder: '#250042',
+      slotBg: '#1e0030',
+      slotBorder: '#4700a3',
+      slotImgBg: '#0a0011',
+    },
+    {
+      name: 'Desert Sunset',
+      shopHue: 30,
+      bodyBg: 'linear-gradient(180deg, #ffcc77, #ff9966 40%, #7a2d15 100%)',
+      traybarBg: 'linear-gradient(#b34b1e, #6b240d 55%)',
+      traybarBorder: '#4a1607',
+      slotBg: '#5a2815',
+      slotBorder: '#2f1309',
+      slotImgBg: '#37140b',
+    },
+    {
+      name: 'Ocean Chill',
+      shopHue: 200,
+      bodyBg: 'radial-gradient(1000px 600px at 80% 0%, #0b546e, #032a3f 60%)',
+      traybarBg: 'linear-gradient(#0e5a6e, #083b49 55%)',
+      traybarBorder: '#052733',
+      slotBg: '#0d2f3b',
+      slotBorder: '#051b23',
+      slotImgBg: '#0a1f27',
+    },
+    {
+      name: 'Starlight Space',
+      shopHue: 260,
+      bodyBg: 'radial-gradient(1200px 700px at 50% -20%, #1a144a, #04040a 60%)',
+      traybarBg: 'linear-gradient(#1b1b3a, #0a0a18 55%)',
+      traybarBorder: '#05050c',
+      slotBg: '#0c0c1a',
+      slotBorder: '#070713',
+      slotImgBg: '#05050b',
+    },
+  ];
+
+  function themeIndexForLevel(level){
+    // 0 for levels 1-5, 1 for 6-10, ... 4 for 21-25
+    const idx = Math.min(THEMES.length-1, Math.floor((level-1)/5));
+    return idx;
+  }
+
+  function applyThemeByLevel(){
+    const idx = themeIndexForLevel(state.level);
+    const t = THEMES[idx];
+    // Body background
+    document.body.style.background = t.bodyBg;
+    // Traybar + slot styling
+    const tray = document.getElementById('traybar');
+    tray.style.background = t.traybarBg;
+    tray.style.borderTopColor = t.traybarBorder;
+    // Live slots update
+    document.querySelectorAll('.slot').forEach(s=>{
+      s.style.background = t.slotBg;
+      s.style.borderColor = t.slotBorder;
+    });
+    document.querySelectorAll('.slot .img').forEach(s=>{
+      s.style.background = t.slotImgBg;
+    });
+    // Shop color hue
+    const shopRoot = document.getElementById('shopRoot');
+    if(shopRoot) shopRoot.style.setProperty('--shop-hue', String(t.shopHue));
+    // Badges
+    const curName = document.getElementById('curThemeName');
+    const themeInfo = document.getElementById('themeInfo');
+    const shopThemeBadge = document.getElementById('shopThemeBadge');
+    if(curName) curName.textContent = t.name;
+    if(themeInfo) themeInfo.textContent = `Lv. ${idx}`;
+    if(shopThemeBadge) shopThemeBadge.innerHTML = `Theme Lv. ${idx}<br><small>changes every 5 levels</small>`;
+  }
+
+  // Utility helpers
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
+  function choice(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
+  function randInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+
+  // --- UI: Stars & Cash -------------------------------------------------
+  function renderHUD(){
+    $('#cash').textContent = `$${state.cash}`;
+    $('#levelNum').textContent = state.level;
+    const s = $('#stars'); s.innerHTML = '';
+    for(let i=0;i<5;i++){
+      const span = document.createElement('span');
+      span.className = 'star';
+      span.textContent = i < state.stars ? '★' : '☆';
+      s.appendChild(span);
+    }
+  }
+
+  // --- Traybar ----------------------------------------------------------
+  function renderTrays(){
+    const bar = $('#traybar');
+    bar.innerHTML = '';
+    // Make the grid auto-fit to the number of tray types
+    const cols = Math.max(6, state.maxTrayTypes);
+    bar.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
+    const entries = Object.entries(state.trays);
+    for(let i=0;i<state.maxTrayTypes;i++){
+      const [id, qty] = entries[i] || [null, 0];
+      const slot = document.createElement('div');
+      slot.className = 'slot'+(!id?' empty':'');
+      slot.dataset.index = i;
+      if(id){
+        const food = FOODS.find(f=>f.id===id);
+        slot.innerHTML = `<div class="img"><img alt="${food.name}" src="${foodSrc(food.id)}"></div><div class="qty">${qty}</div>`;
+        if(state.selectedTray===id) slot.classList.add('selected');
+        slot.title = `${food.name} x${qty}`;
+        slot.onclick = ()=>{
+          state.selectedTray = (state.selectedTray===id? null : id);
+          renderTrays();
+          showToast(state.selectedTray? `Selected ${food.name}. Now click items on an order.` : 'Deselected.');
+        };
+      } else {
+        slot.innerHTML = `<div class="img" style="opacity:.35; font-size:48px;">＋</div><div class="qty">0</div>`;
+      }
+      bar.appendChild(slot);
+    }
+    // Re-apply theme visuals to new slots
+    applyThemeByLevel();
+  }
+
+  function addToTrays(foodId, qty=1){
+    const has = Object.prototype.hasOwnProperty.call(state.trays, foodId);
+    if(!has && Object.keys(state.trays).length >= state.maxTrayTypes){
+      showToast('Tray full: sell or use an item first.');
+      return false;
+    }
+    state.trays[foodId] = (state.trays[foodId]||0) + qty;
+    renderTrays();
+    return true;
+  }
+
+  // --- Pantry -----------------------------------------------------------
+  function rollPantry(){
+    // Make pantry less random and more aligned with current demand
+    const needCounts = {};
+    for(const ord of state.customers){
+      if(!ord || ord.served) continue;
+      for(const [id, qty] of Object.entries(ord.needs||{})){
+        needCounts[id] = (needCounts[id]||0) + qty;
+      }
+    }
+
+    // Weight foods by demand (base 1 so unused items can still appear)
+    const weights = new Map();
+    for(const f of FOODS){
+      weights.set(f.id, 1 + (needCounts[f.id]||0)*3);
+    }
+    function weightedPick(exclude){
+      const ids = FOODS.map(f=>f.id).filter(id=>!exclude.has(id));
+      const totals = ids.map(id=>weights.get(id)||1);
+      const sum = totals.reduce((a,b)=>a+b,0);
+      let r = Math.random()*sum;
+      for(let i=0;i<ids.length;i++){
+        r -= totals[i];
+        if(r <= 0) return ids[i];
+      }
+      return ids[ids.length-1];
+    }
+
+    const picks = new Set();
+
+    // Keep one previous pantry item to reduce churn
+    const prev = Array.isArray(state.pantry) ? state.pantry.map(p=>p.id) : [];
+    if(prev.length && Math.random()<0.5){ picks.add(prev[Math.floor(Math.random()*prev.length)]); }
+
+    // Guarantee up to two most-needed items (if any)
+    const neededSorted = Object.entries(needCounts).sort((a,b)=>b[1]-a[1]).map(([id])=>id);
+    for(const id of neededSorted){
+      if(picks.size>=2) break;
+      picks.add(id);
+    }
+
+    // Fill remaining slots with weighted picks
+    while(picks.size < 4){ picks.add(weightedPick(picks)); }
+
+    // Quantity scaled to need (1–3), but at least 1
+    state.pantry = Array.from(picks).map(id=>{
+      const need = needCounts[id]||0;
+      const qty = Math.max(1, Math.min(3, need >= 3 ? 3 : need >= 2 ? 2 : (Math.random()<0.3?2:1)));
+      return { id, qty };
+    });
+
+    state.pantryRefreshAt = Date.now() + 15_000;
+    renderPantry();
+  }
+
+  function renderPantry(){
+    const grid = $('#pantryGrid');
+    grid.innerHTML = '';
+    for(const p of state.pantry){
+      const f = FOODS.find(x=>x.id===p.id);
+      const card = document.createElement('div');
+      card.className = 'p-card';
+      card.innerHTML = `
+        <div class="p-img"><img alt="${f.name}" src="${foodSrc(f.id)}"></div>
+        <div class="p-info">
+          <div class="p-title">${f.name}</div>
+          <div>Buy: <b>$${f.buy}</b> &nbsp; • &nbsp; Sells for ~ $${f.sell}</div>
+          <div class="p-qty">In stock: x${p.qty}</div>
+        </div>
+        <div class="p-buy">
+          <button class="btn">Buy</button>
+        </div>`;
+      const btn = card.querySelector('button');
+      const refreshBtn = ()=>{
+        btn.disabled = p.qty<=0 || state.cash < f.buy || (Object.keys(state.trays).length>=state.maxTrayTypes && !state.trays[f.id]);
+      };
+      refreshBtn();
+      btn.onclick = ()=>{
+        if(p.qty<=0) return;
+        if(state.cash < f.buy){ showToast('Not enough cash.'); return; }
+        if(!addToTrays(f.id, 1)) return;
+        state.cash -= f.buy;
+        p.qty -= 1;
+        renderHUD();
+        renderPantry();
+      };
+      grid.appendChild(card);
+    }
+  }
+
+  // Pantry modal behavior
+  const pantryModal = $('#pantryModal');
+  $('#btnPantry').onclick = ()=>{ pantryModal.classList.add('open'); document.body.classList.add('pantry-open'); renderPantry(); };
+  $('#closePantry').onclick = ()=> { pantryModal.classList.remove('open'); document.body.classList.remove('pantry-open'); };
+
+  // Pantry refresh timer
+  setInterval(()=>{
+    const ms = Math.max(0, state.pantryRefreshAt - Date.now());
+    const s = Math.ceil(ms/1000);
+    $('#refreshTimer').textContent = `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
+    if(ms<=0){ rollPantry(); }
+  }, 200);
+
+  // --- Upgrade Shop (no theme purchase; theme is automatic) -------------
+  const shopModal = $('#shopModal');
+  const shopRoot = $('#shopRoot');
+
+  function renderShop(){
+    // Prices and labels
+    $('#patiencePrice').textContent = `$${PRICES.patience}`;
+    $('#patienceLvl').textContent = `Lv. ${state.patienceLevel}/${CAPS.patience}`;
+
+    $('#trayPrice').textContent = `$${PRICES.tray}`;
+    $('#trayInfo').textContent = `${state.maxTrayTypes} slots`;
+    // Theme visuals (badge text set by applyThemeByLevel)
+    applyThemeByLevel();
+    // Disable preview if already at max theme
+    const idx = themeIndexForLevel(state.level);
+    const previewBtn = document.getElementById('previewTheme');
+    if(previewBtn){
+      previewBtn.disabled = idx >= THEMES.length-1;
+      previewBtn.onclick = ()=>{
+        const next = Math.min(THEMES.length-1, idx+1);
+        const t = THEMES[next];
+        showToast(`Next theme: ${t.name} at Level ${next*5+1}`);
+      };
+    }
+    // Buttons
+    const btnPat = $('#buyPatience');
+    btnPat.disabled = state.patienceLevel >= CAPS.patience || state.cash < PRICES.patience;
+
+    const btnTray = $('#buyTray');
+    btnTray.disabled = state.maxTrayTypes >= CAPS.maxTrayTypes || state.cash < PRICES.tray;
+  }
+
+  function openShop(){ shopModal.classList.add('open'); document.body.classList.add('shop-open'); renderShop(); }
+  function closeShop(){ shopModal.classList.remove('open'); document.body.classList.remove('shop-open'); }
+
+  $('#btnShop').onclick = openShop;
+  $('#closeShop').onclick = closeShop;
+
+  $('#buyPatience').onclick = ()=>{
+    if(state.patienceLevel >= CAPS.patience) return;
+    if(state.cash < PRICES.patience){ showToast('Not enough cash.'); return; }
+    state.cash -= PRICES.patience;
+    state.patienceLevel += 1;
+    renderHUD();
+    renderShop();
+    showToast('Customer patience +5%');
+  };
+
+  $('#buyTray').onclick = ()=>{
+    if(state.maxTrayTypes >= CAPS.maxTrayTypes) return;
+    if(state.cash < PRICES.tray){ showToast('Not enough cash.'); return; }
+    state.cash -= PRICES.tray;
+    state.maxTrayTypes += 1;
+    renderHUD();
+    renderTrays();
+    renderShop();
+    showToast('Tray capacity +1');
+  };
+
+  // --- Customers / Orders ----------------------------------------------
+  function makeOrder(level){
+    // number of items grows with level
+    const effectiveLevel = (level <= 10 ? Math.min(level, 3) : level);
+    let itemCount = Math.min(3, 1 + Math.floor((effectiveLevel-1)/3));
+    // Custom rule: Lv10–14 => 2 items, Lv15+ => 3 items
+    if (level >= 10 && level < 15) itemCount = 2;
+    else if (level >= 15) itemCount = 3;
+    // Pantry-aware selection, but keep some challenge
+    const pantryIds = Array.isArray(state.pantry) ? state.pantry.map(p=>p.id) : [];
+    const pantryQty = new Map(state.pantry.map(p=>[p.id, p.qty]));
+    const allIds = FOODS.map(f=>f.id);
+
+    // Weight foods: pantry items preferred, but anything can appear
+    const weightFor = (id)=>{
+      const base = 1;
+      const bonus = pantryIds.includes(id) ? (2 + (pantryQty.get(id)||1)) : 0; // qty boosts weight
+      return base + bonus;
+    };
+
+    function weightedPick(exclude){
+      const ids = allIds.filter(id=>!exclude.has(id));
+      const weights = ids.map(id=>weightFor(id));
+      const total = weights.reduce((a,b)=>a+b,0);
+      let r = Math.random()*total;
+      for(let i=0;i<ids.length;i++){
+        r -= weights[i];
+        if(r<=0) return ids[i];
+      }
+      return ids[ids.length-1];
+    }
+
+    const ids = new Set();
+
+    // Ensure at least one item is from pantry when pantry has stock
+    if(pantryIds.length){
+      const p = pantryIds[Math.floor(Math.random()*pantryIds.length)];
+      ids.add(p);
+    }
+
+    // With ~35% chance, include exactly one off-pantry wildcard to keep challenge
+    const allowOffPantry = Math.random() < 0.35;
+
+    while(ids.size < itemCount){
+      const pick = weightedPick(ids);
+      if(!pantryIds.includes(pick)){
+        if(!allowOffPantry && pantryIds.length) continue;
+        if(Array.from(ids).some(id=>!pantryIds.includes(id)) && pantryIds.length) continue;
+      }
+      ids.add(pick);
+    }
+
+    const needs = {};
+    for(const id of ids){
+      const inPantry = pantryIds.includes(id);
+      const maxQty = inPantry ? 2 : 1;
+      const qty = inPantry && Math.random()<0.25 ? 2 : 1;
+      needs[id] = Math.min(maxQty, qty);
+    }
+
+    const value = Object.entries(needs).reduce((sum,[id,qty])=>{
+      const f = FOODS.find(x=>x.id===id); return sum + f.sell*qty; },0);
+
+    function baseSecondsForLevel(level){
+      if(level <= 2){ return 75 - (level-1)*5; }
+      if(level <= 10){ return 65 - (level-3)*3; }
+      return Math.max(15, 44 - (level-10)*2);
+    }
+    const base = baseSecondsForLevel(level);
+    const patienceMult = 1 + state.patienceLevel * 0.05; // +5% per level
+    const time = base * patienceMult * 1000;
+
+    return { id: crypto.randomUUID(), needs, value, time, createdAt: Date.now(), served:false };
+  }
+
+  function renderOrders(){
+    const wrap = $('#orders');
+    wrap.innerHTML = '';
+    const now = Date.now();
+    for(const c of state.customers){
+      const left = Math.max(0, c.time - (now - c.createdAt));
+      const pct = Math.max(0, Math.min(100, (left/c.time)*100));
+      const barColor = pct>60? 'var(--green)' : pct>30? 'var(--amber)' : 'var(--red)';
+      const div = document.createElement('div');
+      div.className = 'order';
+      div.dataset.cid = c.id;
+      div.innerHTML = `<h3>ORDER</h3>
+        <div class="need">${Object.entries(c.needs).map(([id,qty])=>{
+          const f=FOODS.find(x=>x.id===id);
+          return `<div class="item" data-id="${id}"><div class="em"><img alt="${f.name}" src="${foodSrc(f.id)}"></div><div>x<span class="q">${qty}</span></div></div>`;
+        }).join('')}</div>
+        <div class="price">$${c.value}</div>
+        <div class="bar"><span class="tbar" style="width:${pct}%; background:${barColor}"></span></div>`;
+
+      // Click handling to serve items
+      div.querySelectorAll('.need .item').forEach(it=>{
+        it.addEventListener('click', ()=>{
+          const id = it.dataset.id;
+          if(state.selectedTray!==id){ showToast('Select matching item in tray first.'); return; }
+          if(c.needs[id] <= 0){ showToast('That part of the order is complete.'); return; }
+          if(!state.trays[id]){ showToast('You do not have any left.'); return; }
+          // serve
+          state.trays[id] -= 1; if(state.trays[id]<=0) delete state.trays[id];
+          c.needs[id] -= 1;
+          renderTrays();
+          const q = it.querySelector('.q'); q.textContent = c.needs[id];
+          // complete?
+          if(Object.values(c.needs).every(x=>x<=0)){
+            c.served = true;
+            state.cash += c.value;
+            showToast(`Order complete! +$${c.value}`);
+            setTimeout(()=>{
+              state.customers = state.customers.filter(x=>x.id!==c.id);
+              maybeSpawnCustomer();
+              renderOrders();
+              renderHUD();
+            }, 250);
+          }
+        });
+      });
+
+      wrap.appendChild(div);
+    }
+  }
+
+  function maybeSpawnCustomer(){
+    const need = state.maxVisibleOrders - state.customers.length;
+    for(let i=0;i<need;i++){
+      if(spawnedThisLevel >= targetForLevel) return;
+      state.customers.push(makeOrder(state.level));
+      spawnedThisLevel++;
+    }
+  }
+
+  let targetForLevel = 0; // how many customers to handle this level
+  let spawnedThisLevel = 0;
+
+  function startLevel(){
+    $('#orders').innerHTML = '';
+    state.customers = [];
+    spawnedThisLevel = 0;
+    targetForLevel = 3 + Math.floor(state.level*1.2); // increasing demand
+    maybeSpawnCustomer();
+    renderOrders();
+    // Ensure theme is correct at level start
+    applyThemeByLevel();
+  }
+
+  // Tick: handle timers, fail orders
+  setInterval(()=>{
+    const now = Date.now();
+    let changed = false;
+    for(const c of [...state.customers]){
+      const left = c.time - (now - c.createdAt);
+      if(left <= 0){
+        // lost customer
+        state.customers = state.customers.filter(x=>x.id!==c.id);
+        state.stars -= 1; changed = true;
+        showToast('Customer left! You lost a star.');
+        if(state.stars<=0){ gameOver(false); return; }
+        maybeSpawnCustomer();
+      }
+    }
+    if(changed){ renderHUD(); }
+    updateOrderBars();
+
+    // Check level completion
+    if(spawnedThisLevel >= targetForLevel && state.customers.length===0){
+      if(state.level >= state.totalLevels){ gameOver(true); }
+      else {
+        state.level++;
+        renderHUD();
+        // Theme bump when crossing into a new 5-level bracket
+        const prevIdx = themeIndexForLevel(state.level-1);
+        const nextIdx = themeIndexForLevel(state.level);
+        if(nextIdx > prevIdx){
+          applyThemeByLevel();
+          showToast(`New look unlocked: ${THEMES[nextIdx].name}!`);
+        }
+        startLevel();
+      }
+    }
+  }, 200);
+
+  
+  // Lightweight update: only refresh the timer bars/colors without rebuilding DOM
+  function updateOrderBars(){
+    const now = Date.now();
+    for(const c of state.customers){
+      const left = Math.max(0, c.time - (now - c.createdAt));
+      const pct = Math.max(0, Math.min(100, (left/c.time)*100));
+      const barColor = pct>60? 'var(--green)' : pct>30? 'var(--amber)' : 'var(--red)';
+      const el = document.querySelector(`.order[data-cid="${c.id}"] .tbar`);
+      if(el){
+        el.style.width = pct + '%';
+        el.style.background = barColor;
+      }
+    }
+  }
+
+// --- Toast ------------------------------------------------------------
+  let toastTimer=null;
+  function showToast(msg){
+    const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(()=>t.classList.remove('show'), 1200);
+  }
+
+  // --- Win / Lose -------------------------------------------------------
+  function gameOver(win){
+    const wl = $('#winlose');
+    $('#wlTitle').textContent = win? '🎉 You beat Perfect Cafe!' : 'Game Over';
+    $('#wlText').textContent = win ? `You cleared all ${state.totalLevels} levels with $${state.cash} cash!`
+                                   : 'You lost all 5 stars. Better luck next time!';
+    wl.style.display = 'grid';
+  }
+  $('#restartBtn').onclick = ()=>{ location.reload(); };
+  // --- Init -------------------------------------------------------------
+  function init(){
+    renderHUD();
+    rollPantry();
+    renderTrays();
+    applyThemeByLevel(); // initial
+    startLevel();
+  }
+  init();
+
+  // --- Image Placeholder / Future Assets -------------------------------
+  // NOTE FOR ART ASSETS:
+  //  - Right now the game expects PNGs in ./img matching each food id.
+  //  - Replace or add files as needed.
+  </script>
+</body>
+</html>
